@@ -1,0 +1,315 @@
+	<!DOCTYPE HTML>
+	<html>
+	<head>
+		<title>Semantic Web Warriors</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+		<script src="js/jquery.min.js"></script>
+		<script src="js/jquery.scrolly.min.js"></script>
+		<script src="js/jquery.scrollzer.min.js"></script>
+		<script src="js/skel.min.js"></script>
+		<script src="js/skel-layers.min.js"></script>
+		<script src="js/init.js"></script>
+		<script src="https://www.google.com/jsapi"></script>
+		<script src="https://www.gstatic.com/charts/loader.js"></script>
+		<noscript>
+			<link rel="stylesheet" href="css/skel.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-wide.css" />
+		</noscript>
+		<!--[if lte IE 9]><link rel="stylesheet" href="css/ie/v9.css" /><![endif]-->
+		<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
+		<script>
+			var dataUrl = "http://52.207.219.191:3030/myDataset/query?query=";
+			var queryString = "PREFIX ns0: <http://data-gov.tw.rpi.edu/vocab/p/191/>"
+			+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>"
+			+ "SELECT ?state ?year (SUM(xsd:float(?release_pounds)) as ?release_pounds1) (SUM(xsd:float(?underground_injection)) as ?underground_injection1) (SUM(xsd:float(?air_emissions)) as ?air_emissions1) (SUM(xsd:float(?land_releases)) as ?land_releases1)"
+			+ "WHERE {?s a <http://data-gov.tw.rpi.edu/2009/data-gov-twc.rdf#DataEntry> ."
+			  + "?s ns0:facility_state ?state ."
+			  + "?s ns0:surface_impoundment_release_pounds ?release_pounds ."
+			  + "?s ns0:total_underground_injection ?underground_injection ."
+			  + "?s ns0:total_fugitive_air_emissions ?air_emissions ."
+			  + "?s ns0:total_on_site_land_releases ?land_releases ."
+			  + "?s ns0:reporting_year ?year .}"
+			+ "GROUP BY ?state ?year";
+			var fullQuery = dataUrl + encodeURIComponent(queryString) + "&output=json";
+			var xmlhttp = new XMLHttpRequest();
+			xmlhttp.onreadystatechange = function() {
+			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+				handleQueryResponse(xmlhttp.responseText);
+			}
+		}
+		xmlhttp.open("GET", fullQuery, true);
+		xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+	    xmlhttp.setRequestHeader("Accept", "application/sparql-results+xml");
+		xmlhttp.send();
+
+		state_code_arr = new Array();
+		state_code_arr['AL'] = 'Alabama';
+		state_code_arr['AK'] = 'Alaska';
+		state_code_arr['AZ'] = 'Arizona';
+		state_code_arr['AR'] = 'Arkansas';
+		state_code_arr['CA'] = 'California';
+		state_code_arr['CO'] = 'Colorado';
+		state_code_arr['CT'] = 'Connecticut';
+		state_code_arr['DE'] = 'Delaware';
+		state_code_arr['DC'] = 'District of Columbia';
+		state_code_arr['FL'] = 'Florida';
+		state_code_arr['GA'] = 'Georgia';
+		state_code_arr['HI'] = 'Hawaii';
+		state_code_arr['ID'] = 'Idaho';
+		state_code_arr['IL'] = 'Illinois';
+		state_code_arr['IN'] = 'Indiana';
+		state_code_arr['IA'] = 'Iowa';
+		state_code_arr['KS'] = 'Kansas';
+		state_code_arr['KY'] = 'Kentucky';
+		state_code_arr['LA'] = 'Louisiana';
+		state_code_arr['ME'] = 'Maine';
+		state_code_arr['MD'] = 'Maryland';
+		state_code_arr['MA'] = 'Massachusetts';
+		state_code_arr['MI'] = 'Michigan';
+		state_code_arr['MN'] = 'Minnesota';
+		state_code_arr['MS'] = 'Mississippi';
+		state_code_arr['MO'] = 'Missouri';
+		state_code_arr['MT'] = 'Montana';
+		state_code_arr['NE'] = 'Nebraska';
+		state_code_arr['NV'] = 'Nevada';
+		state_code_arr['NH'] = 'New Hampshire';
+		state_code_arr['NJ'] = 'New Jersey';
+		state_code_arr['NM'] = 'New Mexico';
+		state_code_arr['NY'] = 'New York';
+		state_code_arr['NC'] = 'North Carolina';
+		state_code_arr['ND'] = 'North Dakota';
+		state_code_arr['OH'] = 'Ohio';
+		state_code_arr['OK'] = 'Oklahoma';
+		state_code_arr['OR'] = 'Oregon';
+		state_code_arr['PA'] = 'Pennsylvania';
+		state_code_arr['RI'] = 'Rhode Island';
+		state_code_arr['SC'] = 'South Carolina';
+		state_code_arr['SD'] = 'South Dakota';
+		state_code_arr['TN'] = 'Tennessee';
+		state_code_arr['TX'] = 'Texas';
+		state_code_arr['UT'] = 'Utah';
+		state_code_arr['VT'] = 'Vermont';
+		state_code_arr['VA'] = 'Virginia';
+		state_code_arr['WA'] = 'Washington';
+		state_code_arr['WV'] = 'West Virginia';
+		state_code_arr['WI'] = 'Wisconsin';
+		state_code_arr['WY'] = 'Wyoming';
+
+		function translate(stateName) {
+			return state_code_arr[stateName];
+		}
+
+		function handleQueryResponse(response) {
+			//var arrayData = $.csv.toArrays(response, {onParseValue: $.csv.hooks.castToScalar});
+			var data = JSON.parse(response);
+			//console.log(data.results);
+			locations = [];
+			locationsMap = new Map();
+			var year05 = new Map();
+			var year06 =new Map();
+			$.each(data.results.bindings, function(i, obj) {
+				var stateName = translate(obj.state.value);
+				if(stateName != undefined){
+					if(obj.year.value == '2005'){
+						year05.set(stateName,[obj.release_pounds1.value, obj.underground_injection1.value, obj.air_emissions1.value, obj.land_releases1.value]);
+					}
+					else{
+						year06.set(stateName,[obj.release_pounds1.value, obj.underground_injection1.value, obj.air_emissions1.value, obj.land_releases1.value]);
+					}	
+				}				
+			});
+			
+			for (var [key, value] of year05) {
+				var temp = year06.get(key);
+				var tempValue = parseInt(temp[2])  - parseInt(value[2]);
+  				locations.push([key,tempValue]);
+  				locationsMap.set(key,[value[1], value[2], value[3], temp[1], temp[2], temp[3]])
+			}
+			
+			 google.charts.load('current', {'packages': ['geomap', 'bar', 'corechart']});
+     		 google.charts.setOnLoadCallback(drawMarkersMap);
+		}
+	 
+	
+
+      function drawMarkersMap() {
+      	var tempArray = [];
+      	tempArray.push(['State',   'Air Emission difference between 2006 and 2005']);
+      	for(var i=0;i<50;i++) {
+      		tempArray.push(locations[i]);
+      		
+      	}
+      	//console.log(tempArray);
+      	//console.log(locations);
+
+      	var data = google.visualization.arrayToDataTable(tempArray);
+
+      	var options = {
+          region: 'US',
+          dataMode: 'regions',
+          width : 730,
+		  height : 500,
+		  colors : [0xEEEEFF, 0xFF3030 ]
+
+        };
+          var container = document.getElementById('states');
+          var geomap = new google.visualization.GeoMap(container);
+          google.visualization.events.addListener(geomap,'regionClick', function(e){
+          	var stateCode = e.region;
+          	var stateFull = translate(stateCode.substring(3));
+
+          	//console.log(stateFull);
+
+          	var tempData = locationsMap.get(stateFull);
+
+	        var data = google.visualization.arrayToDataTable([
+	          ['Year', 'Underground Injection', 'Air Emissions', 'Land Releases'],
+	          ['2005', tempData[0], tempData[1], tempData[2]],
+	          ['2006', tempData[3], tempData[4], tempData[5]]
+	        ]);
+
+	        var options1 = {
+	        backgroundColor:'red',
+	        animation: {
+	        	duration : 5000
+	        },
+	        width: 900,
+	        height: 500,
+	        chart: {
+	            title: stateFull + ' Comparison',
+	            subtitle: 'Underground, Air and Land Releases: 2005 - 2006'
+	        },
+	          bars: 'vertical',
+          	  colors: ['#ff1a1a', '#00b300', '#3366ff'],
+	        };
+
+	        var chart = new google.charts.Bar(document.getElementById('columnChartDiv'));
+
+	        chart.draw(data, options1);
+        });
+
+        geomap.draw(data, options);
+    }
+		</script>
+	</head>
+	<body>
+		<!-- Header -->
+		<div id="header" class="skel-layers-fixed">
+
+			<div class="top">
+
+				<!-- Logo -->
+				<div id="logo">
+					<h1 id="title">Semantic Web Warriors</h1>
+					<p>Alay Vora <br>Somasundaram Ardhanareeswaran</p>
+				</div>
+
+				<!-- Nav -->
+				<nav id="nav">
+					<ul>
+						<li><a href="#top" id="top-link" class="skel-layers-ignoreHref"><span class="icon fa-info">Introduction</span></a></li>
+						<li><a href="#portfolio" id="portfolio-link" class="skel-layers-ignoreHref"><span class="icon fa-th">US state wise comparison</span></a></li>
+						<!--<li><a href="#about" id="about-link" class="skel-layers-ignoreHref"><span class="icon fa-eyedropper">Organization wise comparison</span></a></li>-->
+						<li><a href="#contact" id="contact-link" class="skel-layers-ignoreHref"><span class="icon fa-envelope">Contact</span></a></li>
+					</ul>
+				</nav>						
+			</div>
+		</div>
+
+		<!-- Main -->
+		<div id="main">
+			<!-- Intro -->
+			<section id="top" class="one dark cover">
+				<div class="container">
+					<header>
+						<h2 style="color: #000000" class="alt" >
+							This project is all about US state wise comparison of toxic releases across two years.
+						</h2>
+						<p style="color: #000000">
+							Let's start scrolling and learn more about the project.
+						</p>
+					</header>
+
+					<footer>
+						<a href="#portfolio" class="button scrolly">If lazy PUSH ME</a>
+					</footer>
+
+				</div>
+			</section>
+
+			<!-- Portfolio -->
+			<section id="portfolio" class="two">
+				<div class="container">
+
+					<header>
+						<h2>US state wise toxic release comparison</h2>
+					</header>
+
+					<p>The below chart represents the change in Air Emmisions across years 2005 and 2006. To see a graphical representation of all toxic releases (Uderground, Land and Air) per US state, click on any of the state and scroll down.</p>
+					<div id="states" style="text-align:center; margin-bottom:50px"><img src="images/loading.gif"></div>
+					
+					<header>
+						<h2>Specific State Toxic Release Comparison</h2>
+					</header>
+
+					<div style="width:100%">
+						<div style="margin: 0 auto; width: 50%" id="columnChartDiv">Click on one of the states above!</div>
+					</div>
+					
+
+				</div>
+			</section>
+
+			<!-- About Me -->
+			<!--<section id="about" class="three">
+				<div class="container">
+					<header>
+						<h2>Organization wise comparison</h2>
+					</header>						
+					<p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+					
+				</div>
+			</section>-->
+
+			<!-- Contact -->
+			<section id="contact" class="four">
+				<div class="container">
+					<header>
+						<h2>Contact</h2>
+					</header>
+					<p>If you have any query regarding this project please get in thouch, Or feel free to say Hi. We like that too.</p>
+					<form method="post" action="#">
+						<div class="row 50%">
+							<div class="6u"><input type="text" name="name" placeholder="Name" /></div>
+							<div class="6u"><input type="text" name="email" placeholder="Email" /></div>
+						</div>
+						<div class="row 50%">
+							<div class="12u">
+								<textarea name="message" placeholder="Message"></textarea>
+							</div>
+						</div>
+						<div class="row">
+							<div class="12u">
+								<input type="submit" value="Send Message" />
+							</div>
+						</div>
+					</form>
+
+				</div>
+			</section>
+
+		</div>
+
+		<!-- Footer -->
+		<div id="footer">
+			<!-- Copyright -->
+			<ul class="copyright">
+				<li>&copy; Semantic Web Warriors. All rights reserved.</li>
+			</ul>
+		</div>
+	</body>
+	</html>
