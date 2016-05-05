@@ -1,4 +1,4 @@
-##Toxic Release Comparison
+##Toxic Release Comparison for USA between years (2005 & 2006)
 
 ##Steps to run the project:
 1. Install WAMP server
@@ -21,7 +21,7 @@
 
 ##Description of Data Sources:
 
-+ Dataset 191:  2005 Toxics Release Inventory National data file of all US States and Territories
++ Dataset 191: 2005 Toxics Release Inventory National data file of all US States and Territories
 + The Toxics Release Inventory (TRI) is a publicly available EPA database that contains information on toxic chemical releases and waste management activities reported annually by certain industries as well as federal facilities.  
 
 + Dataset 249: 2006 Toxics Release Inventory National data file of all US States and Territories
