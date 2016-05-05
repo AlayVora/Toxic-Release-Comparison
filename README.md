@@ -6,9 +6,9 @@
 3. Access the homepage of the project with the following URL: http://localhost/Semantic/
 
 ##Introduction:
-*The project focuses on using Semantic web approach to integrate two RDF datasets from Data.gov website using SPARQL queries. The integration happens with the help of a common predicate.
-+The datasets being used for the project are been hosted on Jena Fuseki Server on an Amazon EC2 instance.
--Using the Google Visualization API’s, the required results are rendered to the webpage using JavaScript and HTML.
+* The project focuses on using Semantic web approach to integrate two RDF datasets from Data.gov website using SPARQL queries. The integration happens with the help of a common predicate.
++ The datasets being used for the project are been hosted on Jena Fuseki Server on an Amazon EC2 instance.
+- Using the Google Visualization API’s, the required results are rendered to the webpage using JavaScript and HTML.
 *Geo Map, Data Table and Column Chart are the three Google Visualizations used for displaying the results.
 *Geo Map shows the map of the United States which change in Air Emissions between the years 2005 and 2006 for each State which can be seen while hovering the mouse to the respective State region.
 *On clicking the State region in the Geo Map we can see a bar chart comparing the change of all toxics released (Land, Underground and Air) by the state into the environment.
